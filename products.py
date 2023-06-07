@@ -6,25 +6,43 @@ class Product:
         quantity (int): The quantity of the product.
         active (bool): by default set True
     Raises NameError: If the name is empty, or the quantity or price is negative."""
-
     def __init__(self, name, price, quantity):
         if len(name) == 0 or quantity < 0 or price < 0:
             raise NameError("Invalid value")
-        self.name = name
-        self.price = price
-        self.quantity = quantity
+        self._name = name
+        self._price = price
+        self._quantity = quantity
         self.active = True
-        self.promotion = None
+        self._promotion = None
 
-    def get_quantity(self) -> float:
+    @property
+    def quantity(self) -> float:
         """Returns quantity of the product."""
-        return self.quantity
+        return self._quantity
 
-    def set_quantity(self, quantity):
+    @quantity.setter
+    def quantity(self, quantity):
         """Sets the quantity of the product."""
-        self.quantity += quantity
-        if self.quantity == 0:
+        self._quantity += quantity
+        if self._quantity == 0:
             self.deactivate()
+
+    @property
+    def price(self):
+        """The price of the product."""
+        return self._price
+
+    @price.setter
+    def price(self, price):
+        """Sets the price of the product.
+        Raises:
+            ValueError: If the price is negative."""
+        try:
+            if price < 0:
+                raise ValueError
+            self._price = price
+        except ValueError:
+            print("Error! Price cannot be negative")
 
     def is_active(self) -> bool:
         """Checks if the product is active, return boolean."""
@@ -39,62 +57,85 @@ class Product:
         self.active = False
 
     def get_promotion(self):
-        return self.promotion
+        """Returns the promotion applied to the product, if any."""
+        return self._promotion
 
     def set_promotion(self, promotion):
-        self.promotion = promotion
+        """Sets the promotion for the product."""
+        self._promotion = promotion
 
-    def show(self) -> str:
+    def __str__(self) -> str:
         """Returns a string representation of the product."""
-        if self.promotion is not None:
-            promotion_info = f"Promotion: *** {self.promotion.name} ***"
+        if self._promotion is not None:
+            promotion_info = f"Promotion: *** {self._promotion.name} ***"
         else:
             promotion_info = "*** No promotion ***"
-        return f"{self.name}, Price: {self.price}, Quantity: {self.quantity}\n  {promotion_info}"
+        return f"{self._name}, Price: {self._price}, Quantity: {self._quantity}\n  {promotion_info}"
 
     def buy(self, quantity) -> float:
         """Buys a specified quantity of the product.
+        If there is any promotion then it is applied.
         Returns total price of the purchase.
         Raises ValueError: If the quantity is greater than the available quantity."""
-        if quantity <= 0 or quantity > self.quantity:
+        if quantity <= 0 or quantity > self._quantity:
             raise ValueError("Invalid quantity!")
-        if self.promotion:
-            return self.promotion.apply_promotions(self, quantity)
+        if self._promotion:
+            return self._promotion.apply_promotions(self, quantity)
         else:
-            total_price = quantity * self.price
-            self.quantity -= quantity
-            if self.quantity == 0:
-                self.deactivate()
+            total_price = quantity * self._price
+            self._quantity -= quantity
+        if self._quantity == 0:
+            self.deactivate()
         return total_price
+
+    def get_price(self):
+        """Returns the price of the product."""
+        return self._price
+
+    def __lt__(self, other):
+        """Comparison method for 'less than' operator.
+            Return a boolean."""
+        return self.get_price() < other.get_price()
+
+    def __gt__(self, other):
+        """Comparison method for 'greater than' operator.
+            Return a boolean."""
+        return self.get_price() > other.get_price()
 
 
 class NonStockedProduct(Product):
+    """Represents a non-stocked product, which has a quantity of 0 by default."""
     def __init__(self, name, price):
         super().__init__(name, price, quantity=0)
 
-    def show(self):
-        if self.promotion is not None:
-            promotion_info = f"Promotion: *** {self.promotion.name} ***"
+    def __str__(self):
+        """Returns a string representation of the non-stocked product."""
+        if self._promotion is not None:
+            promotion_info = f"Promotion: *** {self._promotion.name} ***"
         else:
             promotion_info = "*** No promotion ***"
-        return f"{self.name}, Price: {self.price}, this is a non-stocked product.\n  {promotion_info}"
+        return f"{self._name}, Price: {self._price}, this is a non-stocked product.\n  {promotion_info}"
 
     def buy(self, quantity) -> float:
-        if self.promotion:
-            return self.promotion.apply_promotions(self, quantity)
-        total_price = self.price * quantity
+        """Buys a specified quantity of the non-stocked product.
+            Returns total price of bought products."""
+        if self._promotion:
+            return self._promotion.apply_promotions(self, quantity)
+        total_price = self._price * quantity
         return total_price
 
 
 class LimitedProduct(Product):
+    """Represents a limited quantity product, with a maximum quantity per order."""
     def __init__(self, name, price, quantity, maximum):
         super().__init__(name, price, quantity)
-        self.maximum = maximum
+        self._maximum = maximum
 
-    def show(self):
-        if self.promotion is not None:
-            promotion_info = f"Promotion: *** {self.promotion.name} ***"
+    def __str__(self):
+        """Returns a string representation of the limited product."""
+        if self._promotion is not None:
+            promotion_info = f"Promotion: *** {self._promotion.name} ***"
         else:
             promotion_info = "*** No promotion ***"
-        return f"{self.name}, Price: {self.price}, Quantity: {self.quantity}, maximum quantity per order" \
-               f" {self.maximum}.\n  {promotion_info}"
+        return f"{self._name}, Price: {self._price}, Quantity: {self._quantity}, maximum quantity per order" \
+               f" {self._maximum}.\n  {promotion_info}"

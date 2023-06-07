@@ -34,7 +34,7 @@ def test_inactive_if_zero_quantity_left():
 def test_correct_amount_in_stock():
     keys = products.Product("Keyring", 15.00, 10)
     keys.buy(5)
-    assert products.Product.get_quantity(keys) == 5
+    assert keys.quantity == 5
 
 
 # Test that buying a larger quantity than exists invokes exception.

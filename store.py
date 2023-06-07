@@ -1,5 +1,9 @@
+import products
+
+
 class Store:
     """A class representing a store that manages products."""
+
     def __init__(self, products):
         """Initialize the Store with a list of products."""
         self.products = products
@@ -36,9 +40,14 @@ class Store:
         Raises:
             ValueError if entered quantity is above of what is left in stock"""
         total_price = 0.0
+        error = False
         for product, quantity in shopping_list:
             try:
-                total_price += product.buy(quantity)
+                if isinstance(product, products.LimitedProduct) and 0 < quantity > 1:
+                    print("This is a limited product, maximum one per order!")
+                    error = True
+                if not error:
+                    total_price += product.buy(quantity)
             except ValueError:
                 print("Not enough quantity in shop!")
         return total_price
